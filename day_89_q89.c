@@ -1,61 +1,68 @@
 #include <stdio.h>
-#include <stdlib.h>
 
-// Comparator for qsort
-int compare(const void *a, const void *b) {
-    return (*(int *)a - *(int *)b);
-}
+// Function to check if allocation is possible
+int isPossible(int books[], int n, int m, int maxPages) {
+    int students = 1;
+    int pages = 0;
 
-// Function to check if we can place k cows with at least 'dist' distance
-int canPlace(int stalls[], int n, int k, int dist) {
-    int count = 1; // first cow placed at first stall
-    int last_pos = stalls[0];
+    for (int i = 0; i < n; i++) {
+        // If a single book exceeds maxPages → impossible
+        if (books[i] > maxPages)
+            return 0;
 
-    for (int i = 1; i < n; i++) {
-        if (stalls[i] - last_pos >= dist) {
-            count++;
-            last_pos = stalls[i];
+        if (pages + books[i] <= maxPages) {
+            pages += books[i];
+        } else {
+            students++;
+            pages = books[i];
         }
-        if (count >= k)
-            return 1; // true
+
+        if (students > m)
+            return 0;
     }
-    return 0; // false
+
+    return 1;
 }
 
-// Main function to find maximum minimum distance
-int aggressiveCows(int stalls[], int n, int k) {
-    qsort(stalls, n, sizeof(int), compare);
+// Function to find minimum possible maximum pages
+int allocateBooks(int books[], int n, int m) {
+    int sum = 0, max = 0;
 
-    int low = 0;
-    int high = stalls[n - 1] - stalls[0];
-    int ans = 0;
+    for (int i = 0; i < n; i++) {
+        sum += books[i];
+        if (books[i] > max)
+            max = books[i];
+    }
+
+    int low = max;
+    int high = sum;
+    int result = high;
 
     while (low <= high) {
         int mid = (low + high) / 2;
 
-        if (canPlace(stalls, n, k, mid)) {
-            ans = mid;
-            low = mid + 1; // try larger distance
+        if (isPossible(books, n, m, mid)) {
+            result = mid;
+            high = mid - 1; // try smaller value
         } else {
-            high = mid - 1;
+            low = mid + 1;
         }
     }
 
-    return ans;
+    return result;
 }
 
 int main() {
-    int n, k;
+    int n, m;
 
-    scanf("%d %d", &n, &k);
+    scanf("%d %d", &n, &m);
 
-    int stalls[n];
+    int books[n];
     for (int i = 0; i < n; i++) {
-        scanf("%d", &stalls[i]);
+        scanf("%d", &books[i]);
     }
 
-    int result = aggressiveCows(stalls, n, k);
-    printf("%d\n", result);
+    printf("%d\n", allocateBooks(books, n, m));
 
     return 0;
 }
